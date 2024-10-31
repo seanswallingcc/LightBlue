@@ -16,5 +16,7 @@
 
         // optional for all roles
         public string RoleIsolationMode { get; set; }
+        public string Host { get; set; } //for opti-in generic host
+
     }
 }

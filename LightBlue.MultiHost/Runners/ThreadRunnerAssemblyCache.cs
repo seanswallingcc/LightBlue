@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -46,7 +47,7 @@ namespace LightBlue.MultiHost.Runners
         {
             var filename = new AssemblyName(name).Name + fileExtension;
             var filePath = Path.Combine(AssemblyCacheFolder, filename);
-
+            Trace.TraceInformation($"Exists: {File.Exists(filePath)}, FilePath: {filePath}");
             return File.Exists(filePath) ? Assembly.LoadFrom(filePath) : null;
         }
     }

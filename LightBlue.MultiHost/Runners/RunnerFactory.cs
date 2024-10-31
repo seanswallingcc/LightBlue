@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using LightBlue.MultiHost.IISExpress;
 using LightBlue.MultiHost.ViewModel;
 
 namespace LightBlue.MultiHost.Runners
@@ -67,7 +66,7 @@ namespace LightBlue.MultiHost.Runners
             switch (isolation)
             {
                 case RoleIsolationMode.Thread:
-                    return new ThreadRunner(role, assemblyFilePath, ConfigurationLocator.LocateConfigurationFile(config.ConfigurationPath), role.RoleName);
+                    return new ThreadRunner(role, assemblyFilePath, ConfigurationLocator.LocateConfigurationFile(config.ConfigurationPath), role.RoleName, config.Host);
                 case RoleIsolationMode.AppDomain:
                     var setup = new AppDomainSetup
                     {

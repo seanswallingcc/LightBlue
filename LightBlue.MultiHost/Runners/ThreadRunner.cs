@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Remoting.Messaging;
@@ -7,7 +8,6 @@ using System.Threading.Tasks;
 using LightBlue.Host.Stub;
 using LightBlue.Infrastructure;
 using LightBlue.MultiHost.ViewModel;
-using System.Diagnostics;
 
 namespace LightBlue.MultiHost.Runners
 {
@@ -22,6 +22,7 @@ namespace LightBlue.MultiHost.Runners
         private Thread _thread;
         private LogicalCallContextTraceListener _traceListener;
         private HostStub2 _hostStub;
+        private string _genericHost;
 
         public Task Started { get { return _started.Task; } }
         public Task Completed { get { return _completed.Task; } }
@@ -31,12 +32,14 @@ namespace LightBlue.MultiHost.Runners
         public ThreadRunner(Role role,
             string assemblyPath,
             string configurationFilePath,
-            string roleName)
+            string roleName,
+            string genericHost)
         {
             _role = role;
             _assemblyFilePath = assemblyPath;
             _configurationFilePath = configurationFilePath;
             _roleName = roleName;
+            _genericHost = genericHost;
         }
 
         public void Start()
@@ -91,7 +94,8 @@ namespace LightBlue.MultiHost.Runners
                 string workerRoleAssembly,
                 string configurationPath,
                 string roleName,
-                bool useHostedStorage)
+                bool useHostedStorage,
+                string genericHost)
             {
                 var roleDirectory = Path.GetDirectoryName(workerRoleAssembly);
 
@@ -112,8 +116,16 @@ namespace LightBlue.MultiHost.Runners
                     _cancellationTokenSource = (CancellationTokenSource)getMethod.Invoke(null, null);
                 }
 
-                var runner = new HostRunner();
-                runner.Run(workerRoleAssembly, configurationPath, roleName, useHostedStorage);
+                if (genericHost != null)
+                {
+                    var runner = new LibraryRunner();
+                    runner.Run(genericHost, workerRoleAssembly, configurationPath, roleName, useHostedStorage);
+                }
+                else
+                {
+                    var runner = new HostRunner();
+                    runner.Run(workerRoleAssembly, configurationPath, roleName, useHostedStorage);
+                }
             }
 
             public void RequestShutdown()
@@ -152,7 +164,16 @@ namespace LightBlue.MultiHost.Runners
             {
                 _started.SetResult(new object());
                 _role.TraceWriteLine(Identifier, "Role started in thread: " + Thread.CurrentThread.ManagedThreadId + " : " + Thread.CurrentThread.Name);
-                _hostStub.Run(_assemblyFilePath, _configurationFilePath, _roleName, false);
+                if (_genericHost != null)
+                {
+                    _role.TraceWriteLine(Identifier, $"Role Hosted by: {_genericHost}");
+                }
+                else
+                {
+                    _role.TraceWriteLine(Identifier, $"Role Self-Hosting: {_assemblyFilePath}");
+                }
+
+                _hostStub.Run(_assemblyFilePath, _configurationFilePath, _roleName, false, _genericHost);
             }
             catch (Exception ex)
             {
@@ -166,7 +187,7 @@ namespace LightBlue.MultiHost.Runners
             }
         }
 
-        
+
 
         public void Dispose()
         {

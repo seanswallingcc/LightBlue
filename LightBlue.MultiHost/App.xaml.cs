@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using System.Text.Json;
 using System.Windows;
 
@@ -81,6 +79,8 @@ namespace LightBlue.MultiHost
                     {
                         c.ConfigurationPath = Path.GetFullPath(Path.Combine(configDir, c.ConfigurationPath));
                         c.Assembly = Path.GetFullPath(Path.Combine(configDir, c.Assembly));
+                        if (c.Host != null)
+                            c.Host = Path.GetFullPath(Path.Combine(configDir, c.Host));
                     }
 
                     var query =
@@ -125,5 +125,5 @@ namespace LightBlue.MultiHost
                 }
             }
         }
-    }    
+    }
 }
