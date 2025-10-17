@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -106,6 +107,8 @@ namespace LightBlue.Setup
 
         private static void LoadDefinitionFromEnvironmentVariablesOrAzureRoleDefinition()
         {
+            LoadAzureEnvironmentSettings();
+
             if (HasLightBlueEnvironmentFlag())
             {
                 SetAsLightBlue(
@@ -139,6 +142,23 @@ namespace LightBlue.Setup
             }
 
             return isInLightBlueHost;
+        }
+
+        /// <summary>
+        /// Loads all environment variables into the application's configuration settings.
+        /// </summary>
+        /// <remarks>This method copies each environment variable into the application's configuration by
+        /// setting the corresponding value in <see cref="ConfigurationManager.AppSettings"/>. Existing keys in <see
+        /// cref="ConfigurationManager.AppSettings"/> will be overwritten if they match an environment variable name.
+        /// This method does not return a value and is intended for internal use during application startup or
+        /// configuration initialization.</remarks>
+        private static void LoadAzureEnvironmentSettings()
+        {
+            foreach (var key in Environment.GetEnvironmentVariables().Keys)
+            {
+                var value = Environment.GetEnvironmentVariable(key.ToString());
+                ConfigurationManager.AppSettings.Set(key.ToString(), value);
+            }
         }
     }
 }
